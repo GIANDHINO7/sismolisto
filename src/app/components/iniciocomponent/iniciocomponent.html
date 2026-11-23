@@ -1,0 +1,65 @@
+<div class="welcome">
+  <app-ondas class="welcome-ondas" [paso]="22" />
+  <div style="position:relative;z-index:1">
+    <span class="eyebrow" style="color:var(--safe-2)">{{ saludo }} · {{ auth.usuario()?.tipo === 'oficina' ? 'PORTAL OFICINA' : 'PORTAL ESTUDIANTE' }}</span>
+    <h2 style="margin-top:10px">{{ auth.primerNombre() }}, tu nivel es <span style="color:var(--safe-2)">{{ datos.nivel().toLowerCase() }}</span>.</h2>
+    <p>
+      @if (datos.preparacion() === 0) { Empieza evaluando tu espacio: es el primer paso para conocer tus riesgos reales. }
+      @else if (datos.riesgosAbiertos().length) { Tienes {{ datos.riesgosAbiertos().length }} riesgo(s) por atender. Resolverlos sube tu índice de preparación. }
+      @else { ¡Vas muy bien! Mantén el hábito con un micro-simulacro hoy. }
+    </p>
+    <div class="actions">
+      <a class="btn btn-primary" [routerLink]="'/app/simulacros/' + recomendado().id"><app-icon name="play" /> Simulacro de 60 s</a>
+      <a class="btn btn-light" routerLink="/app/evaluar">Evaluar espacio</a>
+      <button class="btn btn-alarm" (click)="sismo.alerta.set(true)"><span class="siren"></span> Alerta sísmica{{ mejorAlerta() ? ' · récord ' + mejorAlerta() : '' }}</button>
+    </div>
+  </div>
+  <div class="ring" role="img" [attr.aria-label]="'Índice de preparación ' + datos.preparacion() + ' por ciento'">
+    <svg viewBox="0 0 160 160"><circle class="bg" cx="80" cy="80" r="70"/><circle class="fg" cx="80" cy="80" r="70" [attr.stroke-dasharray]="circ" [attr.stroke-dashoffset]="circ * (1 - datos.preparacion() / 100)"/></svg>
+    <div class="lbl"><div><b>{{ datos.preparacion() }}</b><small>PREPARACIÓN</small></div></div>
+  </div>
+</div>
+
+<div class="grid-4" style="margin-top:16px">
+  <div class="card kpi"><div class="top">Evaluación <i style="background:var(--safe-soft);color:var(--safe-ink)"><app-icon name="clipboard" /></i></div><strong>{{ datos.pctEvaluacion() }}%</strong><small>Promedio de tus espacios</small></div>
+  <div class="card kpi"><div class="top">Simulacros <i style="background:var(--alert-soft);color:var(--alert-ink)"><app-icon name="timer" /></i></div><strong>{{ datos.pctSimulacros() }}%</strong><small>{{ datos.resultados().length }} intentos realizados</small></div>
+  <div class="card kpi"><div class="top">Riesgos abiertos <i style="background:var(--danger-soft);color:var(--danger-ink)"><app-icon name="alert" /></i></div><strong>{{ datos.riesgosAbiertos().length }}</strong><small>{{ datos.riesgos().length - datos.riesgosAbiertos().length }} resueltos</small></div>
+  <div class="card kpi"><div class="top">Checklist <i style="background:var(--info-soft);color:var(--info)"><app-icon name="list" /></i></div><strong>{{ datos.pctChecklist() }}%</strong><small>Mochila y espacio</small></div>
+</div>
+
+<div class="grid-2" style="margin-top:16px;grid-template-columns:1.3fr 1fr">
+  <div class="card">
+    <h3 class="ct">Tu plan de hoy <span class="chip">{{ hechas() }}/{{ tareas().length }}</span></h3>
+    <div class="tasks">
+      @for (t of tareas(); track t.t) {
+        <a class="task" [class.done]="t.ok" [routerLink]="t.r">
+          <span class="ic" [style.background]="t.c + '1f'" [style.color]="t.c"><app-icon [name]="t.ok ? 'check' : t.i" /></span>
+          <div><b>{{ t.t }}</b><small>{{ t.s }}</small></div>
+          <span class="arr"><app-icon name="arrow-right" /></span>
+        </a>
+      }
+    </div>
+  </div>
+  <div style="display:grid;gap:16px;align-content:start">
+    <div class="card">
+      <h3 class="ct">Riesgos prioritarios <a class="link" style="font-size:14px" routerLink="/app/riesgos">Ver todos</a></h3>
+      @if (datos.riesgosAbiertos().length) {
+        <div class="tasks">
+          @for (r of datos.riesgosAbiertos().slice(0, 3); track r.id) {
+            <a class="task" routerLink="/app/riesgos">
+              <span class="ic" [style.background]="r.severidad === 'alta' ? 'var(--danger-soft)' : r.severidad === 'media' ? 'var(--alert-soft)' : 'var(--info-soft)'" [style.color]="r.severidad === 'alta' ? 'var(--danger)' : r.severidad === 'media' ? 'var(--alert-ink)' : 'var(--info)'"><app-icon name="alert" /></span>
+              <div><b>{{ r.titulo }}</b><small>{{ nombreEspacio(r.espacio) }} · severidad {{ r.severidad }}</small></div>
+            </a>
+          }
+        </div>
+      } @else {
+        <div class="empty" style="padding:28px 16px">Aún no tienes riesgos registrados.<br><a class="link" routerLink="/app/evaluar" style="margin-top:8px">Evalúa tu espacio</a></div>
+      }
+    </div>
+    <div class="card dark">
+      <span class="eyebrow" style="color:var(--safe-2)">Consejo del día</span>
+      <h3 style="font-size:20px;margin:10px 0 8px">{{ tip.titulo }}</h3>
+      <p style="font-size:14px">{{ tip.texto }}</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,92 @@
+<div class="page-head">
+  <div><h2>Mis riesgos</h2><p>Lo que detectaste en tus espacios. Resuélvelos o repórtalos a tu institución.</p></div>
+  <button class="btn btn-primary" (click)="nuevo.set(true)"><app-icon name="plus" /> Registrar riesgo</button>
+</div>
+
+<div class="grid-3" style="margin-bottom:20px">
+  <div class="card kpi" style="border-left:4px solid var(--danger)"><div class="top">Severidad alta</div><strong>{{ conteo().alta }}</strong><small>Atiéndelos primero</small></div>
+  <div class="card kpi" style="border-left:4px solid var(--alert)"><div class="top">Severidad media</div><strong>{{ conteo().media }}</strong><small>Planifica su solución</small></div>
+  <div class="card kpi" style="border-left:4px solid var(--info)"><div class="top">Severidad baja</div><strong>{{ conteo().baja }}</strong><small>Mejoras sencillas</small></div>
+</div>
+
+<div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:6px">
+  <div class="filters" style="margin:0">
+    @for (f of filtros; track f.id) { <button [class.on]="filtro() === f.id" (click)="filtro.set(f.id)">{{ f.t }}</button> }
+  </div>
+  <input class="input" style="max-width:260px;height:40px" placeholder="Buscar riesgo o espacio…" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" aria-label="Buscar">
+</div>
+
+<div class="risk-list" style="margin-top:12px">
+  @for (r of lista(); track r.id; let i = $index) {
+    <div class="risk" [class.resuelto]="r.resuelto" [style.animation-delay.ms]="i * 40">
+      <span class="sev" [style.background]="r.resuelto ? 'var(--safe-soft)' : r.severidad === 'alta' ? 'var(--danger-soft)' : r.severidad === 'media' ? 'var(--alert-soft)' : 'var(--info-soft)'"
+            [style.color]="r.resuelto ? 'var(--safe)' : r.severidad === 'alta' ? 'var(--danger)' : r.severidad === 'media' ? 'var(--alert-ink)' : 'var(--info)'">
+        <app-icon [name]="r.resuelto ? 'check' : 'alert'" />
+      </span>
+      <div style="min-width:0">
+        <b>{{ r.titulo }}</b>
+        <small>{{ nombreEspacio(r.espacio) }} · {{ r.fecha | date:'d MMM, HH:mm' }} · {{ r.origen === 'evaluacion' ? 'Detectado en evaluación' : 'Registro manual' }}</small>
+        @if (r.nota) { <small style="display:block;margin-top:2px">{{ r.nota }}</small> }
+      </div>
+      <div class="acts">
+        <span class="chip" [class.chip-danger]="r.severidad === 'alta'" [class.chip-alert]="r.severidad === 'media'" [class.chip-info]="r.severidad === 'baja'">{{ r.severidad }}</span>
+        <button class="btn btn-sm" [class.btn-ghost]="r.resuelto" [class.btn-primary]="!r.resuelto" (click)="alternar(r)">{{ r.resuelto ? 'Reabrir' : 'Resolver' }}</button>
+        <button class="icon-btn" (click)="borrando.set(r)" aria-label="Eliminar riesgo"><app-icon name="trash" /></button>
+      </div>
+    </div>
+  } @empty {
+    <div class="empty">
+      @if (datos.riesgos().length) { No hay riesgos para este filtro. }
+      @else { Aún no registraste riesgos. <a class="link" routerLink="/app/evaluar">Haz una evaluación</a> o regístralos manualmente. }
+    </div>
+  }
+</div>
+
+@if (nuevo()) {
+  <div class="overlay" (click)="nuevo.set(false)">
+    <form class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" (ngSubmit)="guardar()" novalidate style="display:grid;gap:14px">
+      <h3>Registrar un riesgo</h3>
+      <div class="field">
+        <label for="n-tit">¿Qué observaste?</label>
+        <input id="n-tit" class="input" name="titulo" [(ngModel)]="form.titulo" [class.invalid]="intento() && form.titulo.trim().length < 4" placeholder="Ej. Extintor bloqueado por cajas">
+        @if (intento() && form.titulo.trim().length < 4) { <span class="err">Describe el riesgo (mín. 4 caracteres).</span> }
+      </div>
+      <div class="grid-2" style="gap:10px">
+        <div class="field">
+          <label for="n-esp">Espacio</label>
+          <select id="n-esp" class="input select" name="espacio" [(ngModel)]="form.espacio">
+            @for (e of espacios; track e.id) { <option [value]="e.id">{{ e.emoji }} {{ e.nombre }}</option> }
+          </select>
+        </div>
+        <div class="field">
+          <label for="n-sev">Severidad</label>
+          <select id="n-sev" class="input select" name="severidad" [(ngModel)]="form.severidad">
+            <option value="alta">🔴 Alta</option><option value="media">🟠 Media</option><option value="baja">🔵 Baja</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="n-nota">Nota (opcional)</label>
+        <textarea id="n-nota" class="textarea" style="min-height:80px" name="nota" [(ngModel)]="form.nota" placeholder="Ubicación exacta, a quién avisaste…"></textarea>
+      </div>
+      <div class="modal-actions" style="margin-top:6px">
+        <button type="button" class="btn btn-ghost" (click)="nuevo.set(false)">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar riesgo</button>
+      </div>
+    </form>
+  </div>
+}
+
+@if (borrando(); as b) {
+  <div class="overlay" (click)="borrando.set(null)">
+    <div class="modal" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="modal-icon" style="background:var(--danger-soft);color:var(--danger)"><app-icon name="trash" /></div>
+      <h3>Confirmar acción</h3>
+      <p>¿Eliminar "{{ b.titulo }}"? Esta acción no se puede deshacer.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" (click)="borrando.set(null)">Cancelar</button>
+        <button class="btn btn-danger" (click)="confirmarBorrado()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}

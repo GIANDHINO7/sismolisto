@@ -1,0 +1,42 @@
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<header class="nav over-dark" [class.solid]="solid() || menu()">
+  <div class="wrap">
+    <app-logo fragment="inicio" />
+    <nav aria-label="Principal">
+      <ul class="nav-links">
+        @for (l of links; track l.id) {
+          <li><a routerLink="/" [fragment]="l.id" [class.on]="activa() === l.id">{{ l.t }}</a></li>
+        }
+      </ul>
+    </nav>
+    <div class="nav-right">
+      <button class="icon-btn nav-alarm" (click)="sismo.alerta.set(true)" aria-label="Probar simulacro de alerta sísmica" title="Simulacro de alerta sísmica"><span class="siren"></span></button>
+      <button class="icon-btn" (click)="tema.alternar()" [attr.aria-label]="tema.oscuro() ? 'Activar modo claro' : 'Activar modo oscuro'">
+        <app-icon [name]="tema.oscuro() ? 'sun' : 'moon'" />
+      </button>
+      @if (auth.logueado()) {
+        <a class="btn btn-primary btn-sm" routerLink="/app">Ir a mi panel <app-icon name="arrow-right" /></a>
+      } @else {
+        <a class="nav-login" routerLink="/ingresar">Ingresar</a>
+        <a class="btn btn-primary btn-sm" routerLink="/" fragment="portal">Elegir portal</a>
+      }
+      <button class="icon-btn burger" (click)="menu.set(!menu())" [attr.aria-expanded]="menu()" aria-label="Abrir menú">
+        <app-icon [name]="menu() ? 'x' : 'menu'" />
+      </button>
+    </div>
+  </div>
+</header>
+
+@if (menu()) {
+  <div class="mobile-menu">
+    @for (l of links; track l.id) {
+      <a class="m-link" routerLink="/" [fragment]="l.id" (click)="menu.set(false)">{{ l.t }}</a>
+    }
+    @if (auth.logueado()) {
+      <a class="btn btn-primary btn-block btn-lg" routerLink="/app">Ir a mi panel</a>
+    } @else {
+      <a class="btn btn-primary btn-block btn-lg" routerLink="/registro">Comenzar mi preparación</a>
+      <a class="btn btn-ghost btn-block btn-lg" routerLink="/ingresar" style="margin-top:10px">Ingresar</a>
+    }
+  </div>
+}

@@ -1,0 +1,815 @@
+<app-navbar />
+
+<main id="contenido">
+  <!-- ============================== HERO ============================== -->
+  <section class="hero hero-x" id="inicio" (pointermove)="tilt($event)" (pointerleave)="tiltReset()">
+    <app-ondas class="hero-ondas" (energia)="energia.set($event)" (impacto)="impactos.update(n => n + 1)" />
+    <div class="hero-vignette"></div>
+
+    <div class="hud no-onda" aria-live="off">
+      <div class="hud-row"><span class="hud-live"></span> ESTACIÓN SL-01 · LIMA</div>
+      <div class="hud-mag"><small>MAG</small><b>{{ magnitudHud() }}</b></div>
+      <div class="hud-bar"><i [style.width.%]="energia() * 100" [style.background]="colorEnergia()"></i></div>
+      <div class="hud-row hud-mini"><span>EPICENTROS {{ impactos() }}</span><span>{{ estadoHud() }}</span></div>
+    </div>
+
+    <div class="wrap hero-inner">
+      <div>
+        <span class="live-pill"><b>NUEVO</b> Simulacro de alerta sísmica con sonido y vibración</span>
+        <h1 class="kinetic" aria-label="Prepárate hoy. Actúa con claridad.">
+          <span class="k-line" aria-hidden="true">@for (l of titulo1; track $index) {<span class="k" [style.--i]="$index">{{ l }}</span>}</span>
+          <span class="k-line" aria-hidden="true">@for (l of titulo2; track $index) {<span class="k" [style.--i]="$index + 12">{{ l }}</span>}<span class="hl">@for (l of titulo3; track $index) {<span class="k" [style.--i]="$index + 22">{{ l }}</span>}</span></span>
+        </h1>
+        <p class="hero-lead">Identifica los riesgos de tu aula u oficina, ubica tus zonas seguras y entrena decisiones con micro-simulacros de 60 segundos. <b style="color:#fff">Toca el terreno de fondo</b> para generar un epicentro.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg btn-glow" routerLink="/" fragment="portal">Elegir mi portal <app-icon name="arrow-right" /></a>
+          <button class="btn btn-alarm btn-lg" (click)="sismo.alerta.set(true)"><span class="siren"></span> Probar alerta sísmica</button>
+        </div>
+        <div class="hero-meta">
+          <button class="hero-chip" (click)="sismo.sacudir(.8)"><app-icon name="activity" /> Sacudir la página</button>
+          <button class="hero-chip" (click)="sismo.alternarSonido()"><app-icon [name]="sismo.sonido() ? 'zap' : 'x'" /> Sonido {{ sismo.sonido() ? 'activado' : 'apagado' }}</button>
+          <span><app-icon name="lock" /> Tus datos se quedan en tu equipo</span>
+        </div>
+      </div>
+
+      <div class="phone-stage" [style.transform]="tiltCss()">
+        <div class="phone" [class.quake]="quake() || sismo.activo()">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="ps-top">
+              <small>MI ESPACIO · AULA B-302</small>
+              <h4>Hola, Valeria 👋</h4>
+              <div class="ps-score">
+                <svg class="ps-ring" viewBox="0 0 64 64">
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="7"/>
+                  <circle cx="32" cy="32" r="26" fill="none" stroke="var(--safe-2)" stroke-width="7" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="42" transform="rotate(-90 32 32)"/>
+                  <text x="32" y="37" text-anchor="middle" fill="#fff" font-size="15" font-weight="800" font-family="Bricolage Grotesque">74</text>
+                </svg>
+                <div><b style="font-size:14px">Bien encaminada</b><br><small style="opacity:.6;font-family:var(--f)">Índice de preparación</small></div>
+              </div>
+            </div>
+            <div class="ps-body">
+              <div class="ps-card">
+                <b>Zonas y rutas</b>
+                <span style="color:#6B7685">Ruta principal · 18 m hasta la salida</span>
+                <div class="ps-plan">
+                  <svg viewBox="0 0 240 150" width="100%" height="100%">
+                    <rect x="10" y="10" width="220" height="130" rx="6" fill="#fff" stroke="#CFCCC1" stroke-width="2"/>
+                    @for (r of [0,1,2]; track r) { @for (c of [0,1,2,3]; track c) { <rect [attr.x]="40 + c*40" [attr.y]="38 + r*28" width="26" height="14" rx="3" fill="#EFEDE6"/> } }
+                    <rect x="16" y="16" width="26" height="26" rx="4" fill="#0E9F6E"/><text x="29" y="33" text-anchor="middle" fill="#fff" font-size="9" font-weight="800">ZS</text>
+                    <rect x="200" y="110" width="24" height="24" rx="4" fill="#0E9F6E"/><text x="212" y="126" text-anchor="middle" fill="#fff" font-size="7" font-weight="800">EXIT</text>
+                    <circle cx="150" cy="58" r="6" fill="#E5484D"/><circle cx="150" cy="58" r="6" fill="#E5484D" style="animation:pulse 2s infinite;transform-box:fill-box;transform-origin:center"/>
+                    <path d="M60 128 H 190 V 122" fill="none" stroke="#0E9F6E" stroke-width="3" stroke-dasharray="7 5" style="animation:dash 1s linear infinite"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="ps-card" style="display:flex;align-items:center;gap:10px">
+                <span style="width:34px;height:34px;border-radius:10px;background:#FFF3DC;display:grid;place-items:center">⏱️</span>
+                <div style="flex:1"><b>Salida bloqueada</b><span style="color:#6B7685">Micro-simulacro · 60 s</span></div>
+                <span style="background:#0E9F6E;color:#fff;font-weight:700;border-radius:99px;padding:4px 10px">Jugar</span>
+              </div>
+            </div>
+            <div class="ps-tab">
+              <span class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Inicio</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.1 5.9 9 3 3 6v15l6-3 6 3 6-3V3z"/></svg>Zonas</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/></svg>Simular</span>
+              <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</span>
+            </div>
+          </div>
+        </div>
+        <div class="float-card fc-1"><i style="background:var(--safe)"><app-icon name="shield" /></i><div>Zona segura ubicada<small>en 6 segundos</small></div></div>
+        <div class="float-card fc-2"><i style="background:var(--danger)"><app-icon name="alert" /></i><div>Riesgo detectado<small>Estante sin anclaje</small></div></div>
+        <button class="float-card fc-3" style="cursor:pointer;border:1px solid rgba(255,255,255,.2)" (click)="sacudir()">
+          <i style="background:var(--alert);color:var(--night)"><app-icon name="activity" /></i><div>Simular sacudida<small>Toca para probar</small></div>
+        </button>
+      </div>
+    </div>
+
+    <div class="seismo" aria-hidden="true">
+      <div class="seismo-label"><span>SISMÓGRAFO EN VIVO</span><span>MAG <b>{{ quake() ? magnitud() : magnitudHud() }}</b></span><span>LIMA · CALLAO</span></div>
+      <svg viewBox="0 0 2800 120" preserveAspectRatio="none" [style.transform]="'scaleY(' + (1 + energia() * 2.2) + ')'">
+        <polyline [attr.points]="seismo" fill="none" [attr.stroke]="colorEnergia()" stroke-width="1.6" stroke-linejoin="round" opacity=".9"/>
+      </svg>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      @for (k of [0,1]; track k) {
+        <span>Agáchate</span><span>Cúbrete</span><span>Sujétate</span><span>Ubica la zona segura</span><span>No uses el ascensor</span><span>Arma tu mochila</span><span>Conoce dos rutas</span><span>Mantén la calma</span>
+      }
+    </div>
+  </div>
+
+  <!-- ============================== PORTAL DE ACCESO ============================== -->
+  <section class="section portal" id="portal" [attr.data-hover]="portalHover()">
+    <div class="portal-glow"></div>
+    <div class="wrap">
+      <div class="sec-head center" reveal>
+        <span class="eyebrow">Portal de acceso</span>
+        <h2>¿Dónde te encontrará el próximo sismo?</h2>
+        <p>Cada perfil tiene su propio espacio, sus propios simulacros y su propia identidad visual. Elige el tuyo.</p>
+      </div>
+      <div class="portal-grid">
+        @for (p of portales; track p.tipo) {
+          <article class="pcard" [class.pcard-estudiante]="p.tipo === 'estudiante'" [class.pcard-oficina]="p.tipo === 'oficina'" reveal
+            (pointermove)="tiltCard($event)" (pointerleave)="tiltCardReset($event)" (pointerenter)="portalHover.set(p.tipo)">
+            <div class="pcard-glare"></div>
+            <div class="pcard-scene" aria-hidden="true">
+              @if (p.tipo === 'estudiante') {
+                <svg viewBox="0 0 320 200">
+                  <g class="iso-float">
+                    <path d="M160 40 300 110 160 180 20 110z" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.25)"/>
+                    <path d="M95 92 160 60 225 92 160 124z" fill="rgba(255,255,255,.12)"/>
+                    <rect x="110" y="20" width="100" height="44" rx="4" fill="#0F1D30" stroke="var(--safe-2)" stroke-width="2"/>
+                    <path d="M120 34h50M120 44h70M120 54h36" stroke="rgba(255,255,255,.5)" stroke-width="3" stroke-linecap="round"/>
+                    @for (d of [0,1,2]; track d) {
+                      <g [attr.transform]="'translate(' + (90 + d * 48) + ',' + (110 + d * 10) + ')'">
+                        <path d="M0 0 30 -15 60 0 30 15z" fill="#fff" opacity=".85"/><path d="M0 0v10l30 15V15zM60 0v10L30 25V15z" fill="rgba(255,255,255,.4)"/>
+                      </g>
+                    }
+                    <circle cx="245" cy="70" r="16" fill="var(--safe-2)" class="iso-pulse"/><text x="245" y="75" text-anchor="middle" font-size="12" font-weight="800" fill="#0B1626">ZS</text>
+                  </g>
+                </svg>
+              } @else {
+                <svg viewBox="0 0 320 200">
+                  <g class="iso-float">
+                    <path d="M160 40 300 110 160 180 20 110z" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.25)"/>
+                    <g transform="translate(120,95)"><path d="M0 0 50 -25 100 0 50 25z" fill="#fff" opacity=".9"/><path d="M0 0v12l50 25V25zM100 0v12L50 37V25z" fill="rgba(255,255,255,.45)"/></g>
+                    <rect x="150" y="52" width="40" height="28" rx="3" fill="#0F1D30" stroke="var(--safe-2)" stroke-width="2"/><path d="M170 80v12" stroke="#fff" stroke-width="3"/>
+                    <g transform="translate(232,52)"><rect width="34" height="70" rx="3" fill="rgba(255,255,255,.18)" stroke="rgba(255,255,255,.4)"/><path d="M6 18h22M6 36h22M6 54h22" stroke="rgba(255,255,255,.5)" stroke-width="2"/></g>
+                    <g transform="translate(60,70)"><rect width="10" height="30" x="8" y="20" fill="#7a5a3a"/><circle cx="13" cy="16" r="16" fill="#3fa36b"/></g>
+                    <circle cx="249" cy="40" r="10" fill="var(--danger)" class="iso-pulse"/><text x="249" y="44" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">!</text>
+                  </g>
+                </svg>
+              }
+            </div>
+            <span class="pcard-tag">{{ p.emoji }} {{ p.tag }}</span>
+            <h3>{{ p.titulo }}</h3>
+            <p>{{ p.desc }}</p>
+            <ul>@for (f of p.feats; track f) { <li><app-icon name="check" /> {{ f }}</li> }</ul>
+            <div class="pcard-actions">
+              <button class="btn btn-lg pcard-go" (click)="irPortal(p.tipo)">Ingresar como {{ p.corto }} <app-icon name="arrow-right" /></button>
+              <button class="btn btn-light" (click)="probar(p.tipo)"><app-icon name="play" /> Demo instantánea</button>
+            </div>
+            <small class="pcard-demo">Cuenta demo: <code>{{ p.correo }}</code> · <code>Sismo2026</code></small>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== LABORATORIO DE MAGNITUD ============================== -->
+  <section class="section lab" id="laboratorio">
+    <div class="wrap">
+      <div class="sec-head" reveal>
+        <span class="eyebrow">Laboratorio interactivo</span>
+        <h2>¿Qué le pasa a tu espacio con cada magnitud?</h2>
+        <p>Mueve el control, desata el sismo y toca cada objeto para descubrir por qué es un riesgo y cómo corregirlo.</p>
+      </div>
+
+      <div class="lab-grid">
+        <div class="lab-ctrl card" reveal>
+          <div class="seg" role="tablist" aria-label="Escenario">
+            <button [class.on]="escena() === 'aula'" (click)="cambiarEscena('aula')">🎓 Aula</button>
+            <button [class.on]="escena() === 'oficina'" (click)="cambiarEscena('oficina')">💼 Oficina</button>
+          </div>
+
+          <div class="lab-mag" [style.--c]="colorMag()">
+            <small>MAGNITUD</small>
+            <b>{{ labM().toFixed(1) }}</b>
+            <span class="lab-merc">Intensidad ~{{ mercalli().n }}</span>
+          </div>
+          <input class="lab-range" type="range" min="2" max="9.5" step="0.1" [value]="labM()" (input)="labM.set(+$any($event.target).value)"
+            [style.--p]="((labM() - 2) / 7.5 * 100) + '%'" aria-label="Magnitud del sismo">
+          <div class="lab-scale">@for (v of [2, 4, 6, 8, 9.5]; track v) { <span [style.left.%]="(v - 2) / 7.5 * 100">{{ v }}</span> }</div>
+
+          <p class="lab-desc"><b>{{ mercalli().t }}.</b> {{ mercalli().d }}</p>
+          <div class="lab-energy">
+            <span>Energía liberada vs. un sismo M5</span>
+            <b>×{{ energiaRel() }}</b>
+          </div>
+
+          <label class="check" style="margin-top:4px"><input type="checkbox" [checked]="reaccion()" (change)="reaccion.set(!reaccion())"> <span>Mostrar la reacción correcta de la persona</span></label>
+
+          <div class="lab-btns">
+            <button class="btn btn-alarm btn-lg btn-block" (click)="desatar()" [disabled]="temblando()">
+              <app-icon name="activity" /> {{ temblando() ? 'Temblando…' : 'Desatar sismo' }}
+            </button>
+            <button class="btn btn-ghost" (click)="reiniciarLab()" [disabled]="temblando() || !mUlt()"><app-icon name="refresh" /> Ordenar</button>
+          </div>
+          <p class="hint">La intensidad real depende de la distancia, la profundidad y el tipo de suelo. Modelo didáctico.</p>
+        </div>
+
+        <div class="lab-stage" reveal>
+          <div class="lab-room" [class.shaking]="temblando()" [style.--la]="ampLab()">
+            <svg viewBox="0 0 600 380" class="room" role="img" [attr.aria-label]="'Escena de ' + escena() + ' durante un sismo de magnitud ' + labM().toFixed(1)">
+              <defs>
+                <linearGradient id="lab-wall" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="var(--lab-wall-1)"/><stop offset="1" stop-color="var(--lab-wall-2)"/></linearGradient>
+              </defs>
+              <rect width="600" height="290" fill="url(#lab-wall)"/>
+              <path d="M0 290h600v90H0z" fill="var(--lab-floor)"/>
+              <path d="M0 290h600" stroke="rgba(0,0,0,.15)" stroke-width="2"/>
+              @for (x of [60,160,260,360,460,560]; track x) { <path [attr.d]="'M' + x + ' 290 L' + (x - 40 + (x - 300) * .25) + ' 380'" stroke="rgba(0,0,0,.06)" stroke-width="2"/> }
+
+              <g class="lab-body">
+                <!-- Ventana -->
+                <g class="hot" (click)="info.set('ventana')" [class.sel]="info() === 'ventana'">
+                  <rect x="40" y="60" width="140" height="120" rx="4" fill="#BFE3F5" stroke="#5b6b7d" stroke-width="5"/>
+                  <path d="M110 60v120M40 120h140" stroke="#5b6b7d" stroke-width="4"/>
+                  <path d="M58 74l30 0M60 84l18 0" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+                  @if (caido(7)) {
+                    <g class="crack"><path d="M75 95l15 12-8 14 18 10-4 20M90 107l20-6 6 14M145 70l-8 20 14 10-12 22 10 18M137 90l-18 2" stroke="#2b3644" stroke-width="2" fill="none"/></g>
+                    @for (s of shards; track $index) { <path class="shard" [attr.d]="s.d" fill="#BFE3F5" stroke="#5b6b7d" [style.--dx]="s.dx + 'px'" [style.--r]="s.r + 'deg'"/> }
+                  }
+                </g>
+
+                <!-- Cuadro / reloj -->
+                <g class="hot" (click)="info.set('cuadro')" [class.sel]="info() === 'cuadro'">
+                  <g class="tilt" [class.on]="caido(4.5)" style="transform-origin:255px 62px">
+                    <path d="M255 62l-25 20M255 62l25 20" stroke="#5b6b7d" stroke-width="2"/>
+                    <circle cx="255" cy="62" r="3" fill="#5b6b7d"/>
+                    @if (escena() === 'aula') {
+                      <circle cx="255" cy="105" r="24" fill="#fff" stroke="#3a4656" stroke-width="5"/><path d="M255 105V90M255 105l10 6" stroke="#3a4656" stroke-width="3" stroke-linecap="round"/>
+                    } @else {
+                      <rect x="225" y="82" width="60" height="44" rx="3" fill="#fff" stroke="#3a4656" stroke-width="5"/><path d="M232 118l14-16 10 10 8-8 14 14" stroke="var(--safe)" stroke-width="3" fill="none"/>
+                    }
+                  </g>
+                </g>
+
+                @if (escena() === 'aula') {
+                  <!-- Pizarra -->
+                  <g class="hot" (click)="info.set('pizarra')" [class.sel]="info() === 'pizarra'">
+                    <rect x="310" y="70" width="120" height="80" rx="3" fill="#1f4d3a" stroke="#8a6a45" stroke-width="6"/>
+                    <path d="M325 92h50M325 108h80M325 124h36" stroke="rgba(255,255,255,.75)" stroke-width="3" stroke-linecap="round"/>
+                  </g>
+                } @else {
+                  <!-- Aire acondicionado -->
+                  <g class="hot" (click)="info.set('aire')" [class.sel]="info() === 'aire'">
+                    <g [class.fall]="caido(7.5)" style="--dy:200px;--r:-24deg">
+                      <rect x="320" y="40" width="110" height="34" rx="8" fill="#f2f4f7" stroke="#9aa6b5" stroke-width="3"/>
+                      <path d="M332 62h86" stroke="#9aa6b5" stroke-width="3"/>
+                    </g>
+                  </g>
+                }
+
+                <!-- Lámpara colgante -->
+                <g class="hot" (click)="info.set('lampara')" [class.sel]="info() === 'lampara'">
+                  <g class="sway" style="transform-origin:300px 0">
+                    <path d="M300 0v58" stroke="#3a4656" stroke-width="3"/>
+                    <path d="M272 78l12-20h32l12 20z" fill="#F5A524"/>
+                    <ellipse cx="300" cy="80" rx="28" ry="5" fill="#ffd27a"/>
+                  </g>
+                </g>
+
+                <!-- Estante / archivador -->
+                <g class="hot" (click)="info.set('estante')" [class.sel]="info() === 'estante'">
+                  <g [class.topple]="caido(6.8)" style="transform-origin:470px 290px">
+                    <rect x="470" y="80" width="90" height="210" fill="#8a6a45" stroke="#5e4630" stroke-width="4"/>
+                    @for (y of [130, 185, 240]; track y) { <path [attr.d]="'M470 ' + y + 'h90'" stroke="#5e4630" stroke-width="5"/> }
+                    @if (escena() === 'oficina') {
+                      @for (y of [90, 145, 200, 250]; track y) { <rect x="480" [attr.y]="y" width="70" height="30" rx="3" fill="#cfd6df" stroke="#9aa6b5" stroke-width="2"/><rect x="507" [attr.y]="y + 12" width="16" height="5" rx="2" fill="#7b8794"/> }
+                    }
+                  </g>
+                  @if (escena() === 'aula') {
+                    @for (b of libros; track $index) {
+                      <rect class="book" [class.fall]="caido(6)" [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.w" [attr.height]="b.h" rx="2" [attr.fill]="b.c"
+                        [style.--dy]="(290 - b.y - b.h + b.dy) + 'px'" [style.--dx]="b.dx + 'px'" [style.--r]="b.r + 'deg'" [style.animation-delay]="b.d + 's'"/>
+                    }
+                  }
+                </g>
+
+                <!-- Mesa / escritorio (zona de protección) -->
+                <g class="hot" (click)="info.set('mesa')" [class.sel]="info() === 'mesa'">
+                  <rect x="230" y="232" width="190" height="14" rx="3" fill="#a07850" stroke="#6e5034" stroke-width="3"/>
+                  <path d="M244 246v44M406 246v44" stroke="#6e5034" stroke-width="8" stroke-linecap="round"/>
+                  @if (escena() === 'oficina') {
+                    <g [class.fall]="caido(6.4)" style="--dy:52px;--dx:40px;--r:80deg;transform-origin:360px 232px">
+                      <rect x="330" y="186" width="62" height="40" rx="3" fill="#1c2633" stroke="#3a4656" stroke-width="3"/>
+                      <rect x="336" y="191" width="50" height="30" fill="#2f6fd6"/>
+                      <path d="M361 226v6M348 232h26" stroke="#3a4656" stroke-width="4"/>
+                    </g>
+                  } @else {
+                    <g [class.fall]="caido(6.4)" style="--dy:48px;--dx:-30px;--r:-70deg">
+                      <rect x="270" y="212" width="40" height="20" rx="2" fill="#e9eef5" stroke="#9aa6b5" stroke-width="2"/>
+                      <path d="M276 218h24M276 224h18" stroke="#9aa6b5" stroke-width="2"/>
+                    </g>
+                  }
+                  @if (temblando() && reaccion()) { <rect x="236" y="246" width="178" height="44" fill="var(--safe-2)" opacity=".18" class="safe-glow"/> }
+                </g>
+
+                <!-- Persona -->
+                <g class="person" [class.cover]="temblando() && reaccion()" (click)="info.set('persona')">
+                  @if (temblando() && reaccion()) {
+                    <g transform="translate(300 258)"><circle r="11" cx="0" cy="0" fill="#f1c7a3"/><path d="M-8 6c-6 8-8 16-4 24h28c2-10-2-18-10-24z" fill="var(--safe)"/><path d="M14 10l20-12" stroke="#f1c7a3" stroke-width="6" stroke-linecap="round"/></g>
+                  } @else {
+                    <g transform="translate(150 205)" class="standing" [class.wobble]="temblando()"><circle r="13" cx="0" cy="0" fill="#f1c7a3"/><path d="M-14 18h28l4 46h-36z" fill="var(--safe)"/><path d="M-10 64v22M10 64v22" stroke="#334" stroke-width="7" stroke-linecap="round"/><path d="M-14 22l-12 28M14 22l12 28" stroke="#f1c7a3" stroke-width="6" stroke-linecap="round"/></g>
+                  }
+                </g>
+
+                <!-- Yeso del techo -->
+                @if (caido(7.5) && temblando()) {
+                  @for (p of yeso; track $index) { <rect class="plaster" [attr.x]="p.x" y="-8" [attr.width]="p.s" [attr.height]="p.s" fill="#d9d4c7" [style.animation-delay]="p.d + 's'"/> }
+                }
+              </g>
+            </svg>
+
+            @if (info(); as k) {
+              <div class="lab-info no-onda" [class.ok]="objetos[k].ok">
+                <button class="lab-info-x" (click)="info.set(null)" aria-label="Cerrar">✕</button>
+                <small>{{ objetos[k].ok ? 'ZONA DE PROTECCIÓN' : 'RIESGO · desde M' + objetos[k].u }}</small>
+                <b>{{ objetos[k].t }}</b>
+                <p>{{ objetos[k].r }}</p>
+                <p class="fix"><app-icon [name]="objetos[k].ok ? 'shield' : 'check'" /> {{ objetos[k].f }}</p>
+              </div>
+            } @else {
+              <div class="lab-tip"><app-icon name="target" /> Toca un objeto de la escena</div>
+            }
+          </div>
+
+          <canvas #labCanvas class="lab-seis" aria-hidden="true"></canvas>
+          @if (mUlt() && !temblando()) {
+            <div class="lab-report">
+              <b>Reporte M{{ mUlt().toFixed(1) }}:</b>
+              @for (k of afectados(); track k) { <button class="chip chip-danger" (click)="info.set(k)">{{ objetos[k].t }}</button> }
+              @empty { <span class="chip chip-safe">Sin daños visibles</span> }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== PROBLEMA ============================== -->
+  <section class="section" id="problema">
+    <div class="wrap prob-grid">
+      <div reveal>
+        <span class="eyebrow">El problema</span>
+        <h2>Saber la teoría no es lo mismo que estar preparado.</h2>
+        <p>Todos conocemos el "agáchate, cúbrete y sujétate". Pero los obstáculos y la distribución de un aula, un laboratorio o una oficina cambian, y en el momento del sismo la duda cuesta segundos. SismoListo lleva la preparación del consejo general al <strong>ejercicio situacional</strong> en tu propio espacio.</p>
+        <div class="notice">
+          <app-icon name="info" />
+          <span>En 2025, el simulacro regional de Lima usó un escenario hipotético de <strong>magnitud 8.8</strong> con epicentro a 60 km al oeste del Callao. Es un escenario de entrenamiento, <strong>no una predicción</strong>. Fuentes: Gobierno Regional de Lima (2025), INDECI (2026).</span>
+        </div>
+        <a class="link" routerLink="/" fragment="como-funciona" style="margin-top:24px">¿Cómo lo resolvemos? <app-icon name="arrow-right" /></a>
+      </div>
+      <div class="stats" reveal>
+        <div class="stat dark"><strong>8.8</strong><span>Magnitud del escenario hipotético del simulacro regional de Lima.</span><small>ESCENARIO DE ENTRENAMIENTO</small></div>
+        <div class="stat safe"><strong>&lt;10 s</strong><span>Objetivo didáctico para ubicar la zona segura al entrar a un ambiente.</span><small>META DE LA APP</small></div>
+        <div class="stat alert"><strong>60 s</strong><span>Duración máxima de cada micro-simulacro: cabe entre clase y clase.</span><small>FORMATO BREVE</small></div>
+        <div class="stat"><strong>4</strong><span>Pasos para pasar de la teoría a decisiones prácticas.</span><small>MÉTODO SISMOLISTO</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== CÓMO FUNCIONA ============================== -->
+  <section class="section" id="como-funciona" style="background:var(--surface);border-block:1px solid var(--line)">
+    <div class="wrap">
+      <div class="sec-head" reveal>
+        <span class="eyebrow">Cómo funciona</span>
+        <h2>Cuatro pasos para prepararte de verdad.</h2>
+        <p>Un recorrido guiado que se adapta a si estudias o trabajas, y al ambiente donde pasas más tiempo.</p>
+      </div>
+      <div class="steps-wrap" reveal>
+        <div class="steps" role="tablist">
+          @for (p of pasos; track p.n; let i = $index) {
+            <button class="step" role="tab" [class.on]="paso() === i" [attr.aria-selected]="paso() === i" (click)="irPaso(i)">
+              <span class="n">{{ p.n }}</span>
+              <div><h3>{{ p.t }}</h3><p>{{ p.d }}</p></div>
+              <span class="prog"></span>
+            </button>
+          }
+        </div>
+        <div class="step-view" role="tabpanel">
+          @switch (paso()) {
+            @case (0) {
+              <div class="sv-inner">
+                <span class="sv-tag">PASO 01 · TU ESPACIO</span>
+                <h3>¿Dónde pasas más tiempo?</h3>
+                <div class="sv-options">
+                  <div class="sv-opt sel"><i>🏫</i><div><b>Aula</b><br><small style="opacity:.6">Carpetas y pizarra</small></div></div>
+                  <div class="sv-opt"><i>🧪</i><div><b>Laboratorio</b><br><small style="opacity:.6">Equipos y reactivos</small></div></div>
+                  <div class="sv-opt"><i>💼</i><div><b>Oficina</b><br><small style="opacity:.6">Escritorios y archivos</small></div></div>
+                  <div class="sv-opt"><i>📚</i><div><b>Biblioteca</b><br><small style="opacity:.6">Estanterías altas</small></div></div>
+                </div>
+              </div>
+            }
+            @case (1) {
+              <div class="sv-inner">
+                <span class="sv-tag">PASO 02 · EVALUACIÓN GUIADA</span>
+                <h3>Responde lo que ves a tu alrededor.</h3>
+                <div class="sv-q"><span>¿Sabes dónde está la zona segura?</span><div class="yn"><span class="y">Sí</span><span>No</span></div></div>
+                <div class="sv-q"><span>¿La ruta a la salida está libre?</span><div class="yn"><span>Sí</span><span class="n">No</span></div></div>
+                <div class="sv-q"><span>¿Los estantes están anclados?</span><div class="yn"><span class="y">Sí</span><span>No</span></div></div>
+              </div>
+            }
+            @case (2) {
+              <div class="sv-inner">
+                <span class="sv-tag">PASO 03 · MICRO-SIMULACRO</span>
+                <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin:10px 0 24px">
+                  <span class="sv-timer">00:42</span>
+                  <h3 style="margin:0;flex:1;min-width:220px">La salida principal está bloqueada. ¿Qué haces?</h3>
+                </div>
+                <div class="sv-q" style="border-color:var(--safe-2);background:rgba(25,195,125,.12)"><span>A · Uso la salida secundaria señalizada</span><span>✓</span></div>
+                <div class="sv-q"><span>B · Intento mover el estante</span></div>
+                <div class="sv-q"><span>C · Espero a que otro decida</span></div>
+              </div>
+            }
+            @case (3) {
+              <div class="sv-inner">
+                <span class="sv-tag">PASO 04 · TU PROGRESO</span>
+                <h3>Mira cómo crece tu preparación.</h3>
+                <div style="display:flex;align-items:flex-end;gap:12px;height:180px">
+                  @for (h of [30, 45, 40, 62, 70, 86]; track $index) {
+                    <div style="flex:1;border-radius:10px 10px 4px 4px;background:linear-gradient(#19C37D,#0E9F6E)" [style.height.%]="h"></div>
+                  }
+                </div>
+                <p style="color:rgba(255,255,255,.6);margin-top:14px;font-size:14px">Índice de preparación semanal (ejemplo ilustrativo)</p>
+              </div>
+            }
+          }
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:48px">
+        <a class="btn btn-dark btn-lg" routerLink="/registro">Comenzar mi preparación <app-icon name="arrow-right" /></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== FUNCIONES ============================== -->
+  <section class="section" id="funciones">
+    <div class="wrap">
+      <div class="sec-head center" reveal>
+        <span class="eyebrow">Funciones</span>
+        <h2>Lo esencial para tu preparación, en un solo lugar.</h2>
+      </div>
+      <div class="bento">
+        <article class="card b-1 card-hover" reveal>
+          <span class="b-icon" style="background:var(--safe-soft);color:var(--safe-ink)"><app-icon name="clipboard" /></span>
+          <h3>Evaluación del entorno</h3>
+          <p>Preguntas guiadas según tu ambiente. Cada respuesta negativa se convierte automáticamente en un riesgo registrado con su severidad.</p>
+          <div class="b-visual mini-risk">
+            <div><span>🪑 Ruta de evacuación obstruida</span><span class="chip chip-danger">Alta</span></div>
+            <div><span>🪟 Puesto cercano a ventanas</span><span class="chip chip-alert">Media</span></div>
+            <div><span>🔦 Sin linterna de respaldo</span><span class="chip chip-safe">Resuelto</span></div>
+          </div>
+          <button class="link" style="background:none;border:0;padding:0;margin-top:6px" (click)="probar('estudiante', '/app/evaluar')">Ver evaluación <app-icon name="arrow-right" /></button>
+        </article>
+        <article class="card b-2 dark card-hover" reveal>
+          <span class="b-icon" style="background:rgba(25,195,125,.15);color:var(--safe-2)"><app-icon name="map" /></span>
+          <h3>Zonas y rutas</h3>
+          <p>Un plano interactivo con zonas seguras, salidas y obstáculos. Activa la ruta alternativa cuando la principal se bloquea.</p>
+          <svg viewBox="0 0 220 110" style="margin-top:8px" aria-hidden="true">
+            <rect x="4" y="4" width="212" height="102" rx="10" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
+            @for (c of [0,1,2,3]; track c) { <rect [attr.x]="40 + c*36" y="30" width="22" height="10" rx="2" fill="rgba(255,255,255,.1)"/><rect [attr.x]="40 + c*36" y="56" width="22" height="10" rx="2" fill="rgba(255,255,255,.1)"/> }
+            <rect x="12" y="12" width="18" height="18" rx="4" fill="#0E9F6E"/>
+            <rect x="190" y="80" width="18" height="18" rx="4" fill="#0E9F6E"/>
+            <circle cx="150" cy="35" r="5" fill="#E5484D"/>
+            <path d="M60 88 H 185" fill="none" stroke="#19C37D" stroke-width="2.5" stroke-dasharray="6 5" style="animation:dash 1s linear infinite"/>
+            <circle cx="60" cy="88" r="5" fill="#3B82F6"/>
+          </svg>
+          <button class="link" style="background:none;border:0;padding:0;margin-top:auto;color:var(--safe-2)" (click)="probar('estudiante', '/app/mapa')">Ver zonas <app-icon name="arrow-right" /></button>
+        </article>
+        <article class="card b-3 card-hover" reveal>
+          <span class="b-icon" style="background:var(--alert-soft);color:var(--alert-ink)"><app-icon name="timer" /></span>
+          <h3>Micro-simulacros</h3>
+          <p>Decisiones contrarreloj con eventos inesperados y retroalimentación inmediata.</p>
+          <button class="link" style="background:none;border:0;padding:0;margin-top:auto" (click)="probar('estudiante', '/app/simulacros')">Ver simulacros <app-icon name="arrow-right" /></button>
+        </article>
+        <article class="card b-4 card-hover" reveal>
+          <span class="b-icon" style="background:var(--info-soft);color:var(--info)"><app-icon name="chart" /></span>
+          <h3>Progreso personal</h3>
+          <p>Un índice de preparación que combina evaluaciones, simulacros, checklist y riesgos resueltos. Con logros, racha diaria e historial.</p>
+          <div class="b-visual" style="display:flex;gap:10px;flex-wrap:wrap">
+            <span class="chip">🧭 Primer paso</span><span class="chip">⏱️ Reflejos</span><span class="chip">🎒 Mochila lista</span><span class="chip">🔥 Racha de 3 días</span>
+          </div>
+          <button class="link" style="background:none;border:0;padding:0;margin-top:6px" (click)="probar('estudiante', '/app/progreso')">Ver progreso <app-icon name="arrow-right" /></button>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== SIMULACROS ============================== -->
+  <section class="section" id="simulacros">
+    <div class="wrap">
+      <div class="page-head" style="margin-bottom:48px" reveal>
+        <div class="sec-head" style="margin:0">
+          <span class="eyebrow">Micro-simulacros</span>
+          <h2>Practica antes de que ocurra.</h2>
+          <p>Escenarios de entrenamiento de hasta 60 segundos, con eventos inesperados y retroalimentación en cada decisión.</p>
+        </div>
+        <button class="btn btn-ghost" (click)="probar('estudiante', '/app/simulacros')">Ver los 6 escenarios <app-icon name="arrow-right" /></button>
+      </div>
+      <div class="sims">
+        @for (s of sims; track s.id) {
+          <article class="card sim-card card-hover" reveal>
+            <div class="sim-cover" [style.background]="s.color + '18'">
+              <svg viewBox="0 0 320 170" preserveAspectRatio="xMidYMid slice">
+                <rect x="40" y="30" width="240" height="120" rx="10" fill="var(--surface)" [attr.stroke]="s.color" stroke-opacity=".35" stroke-width="2"/>
+                @for (c of [0,1,2,3,4]; track c) { <rect [attr.x]="70 + c*38" y="62" width="24" height="12" rx="3" [attr.fill]="s.color" fill-opacity=".18"/> <rect [attr.x]="70 + c*38" y="96" width="24" height="12" rx="3" [attr.fill]="s.color" fill-opacity=".18"/> }
+                <rect x="248" y="118" width="24" height="24" rx="4" fill="#0E9F6E"/>
+                <path d="M255 130h10m-4-4 4 4-4 4" stroke="#fff" stroke-width="2" fill="none"/>
+                <path d="M80 135 H 240 V 130" fill="none" [attr.stroke]="s.color" stroke-width="3" stroke-dasharray="8 6" style="animation:dash 1s linear infinite"/>
+                <circle cx="80" cy="135" r="7" [attr.fill]="s.color"/>
+              </svg>
+              <span class="chip" style="background:var(--surface)">{{ s.espacio }}</span>
+              <span class="dur">60 s</span>
+            </div>
+            <div class="sim-body">
+              <div class="meta"><span>{{ s.escenas.length }} decisiones</span><span>·</span><span>{{ s.dificultad }}</span></div>
+              <h3>{{ s.titulo }}</h3>
+              <p>{{ s.resumen }}</p>
+              <button class="btn btn-dark btn-block" (click)="probar(s.espacio === 'Oficina' ? 'oficina' : 'estudiante', '/app/simulacros/' + s.id)"><app-icon name="play" /> Probar demo</button>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== BENEFICIOS ============================== -->
+  <section class="section" id="beneficios" style="background:var(--surface);border-block:1px solid var(--line)">
+    <div class="wrap ben">
+      <div reveal>
+        <span class="eyebrow">Beneficios</span>
+        <h2 style="font-size:clamp(34px,4.6vw,54px);margin:16px 0 24px">Lo que ganas con SismoListo.</h2>
+        <div class="seg" role="tablist">
+          <button role="tab" [class.on]="tabBen() === 'estudiante'" (click)="tabBen.set('estudiante')">🎓 Estudiantes</button>
+          <button role="tab" [class.on]="tabBen() === 'oficina'" (click)="tabBen.set('oficina')">💼 Oficinas</button>
+        </div>
+        <div class="ben-list">
+          @for (b of beneficios[tabBen()]; track b.t + tabBen(); let i = $index) {
+            <div class="ben-item" [style.animation-delay.ms]="i * 70"><i>0{{ i + 1 }}</i><div><b>{{ b.t }}</b><span>{{ b.d }}</span></div></div>
+          }
+        </div>
+      </div>
+      <div class="ben-art" reveal>
+        <span class="sv-tag" style="font-family:var(--f-mono);font-size:12px;color:var(--safe-2);letter-spacing:.1em">ANTES VS. DESPUÉS · ILUSTRATIVO</span>
+        <div style="display:grid;gap:18px;margin-top:24px">
+          @for (r of [{ t: 'Ubicar la zona segura', a: 35, b: 90 }, { t: 'Conocer una ruta alternativa', a: 20, b: 80 }, { t: 'Saber qué llevar en la mochila', a: 40, b: 95 }, { t: 'Decidir sin dudar', a: 25, b: 75 }]; track r.t) {
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px"><span>{{ r.t }}</span><span style="font-family:var(--f-mono);color:var(--safe-2)">{{ r.b }}%</span></div>
+              <div style="height:10px;border-radius:99px;background:rgba(255,255,255,.08);position:relative;overflow:hidden">
+                <i style="position:absolute;inset:0 auto 0 0;border-radius:99px;background:rgba(255,255,255,.25)" [style.width.%]="r.a"></i>
+                <i style="position:absolute;inset:0 auto 0 0;border-radius:99px;background:linear-gradient(90deg,var(--safe),var(--safe-2));opacity:.9;mix-blend-mode:screen" [style.width.%]="r.b"></i>
+              </div>
+            </div>
+          }
+        </div>
+        <p style="color:rgba(255,255,255,.5);font-size:12px;margin-top:22px">Valores ilustrativos de objetivos didácticos; no corresponden a un estudio medido.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== COMPARATIVA ============================== -->
+  <section class="section" id="comparativa">
+    <div class="wrap">
+      <div class="sec-head center" reveal>
+        <span class="eyebrow">Comparativa</span>
+        <h2>¿Por qué SismoListo?</h2>
+        <p>Comparación descriptiva de enfoques, no un estudio de efectividad.</p>
+      </div>
+      <div class="compare compare-wrap" reveal>
+        <table>
+          <thead><tr><th>Capacidad</th><th class="us">SismoListo</th><th>Guías tradicionales</th></tr></thead>
+          <tbody>
+            @for (r of [
+              { c: 'Evaluar tu propio espacio', a: 'Evaluación interactiva según el ambiente', b: 'Recomendaciones generales para leer' },
+              { c: 'Practicar decisiones', a: 'Micro-simulacros con eventos y feedback', b: 'Instrucciones para practicar por tu cuenta' },
+              { c: 'Registrar riesgos situacionales', a: 'Registro local con severidad y seguimiento', b: 'Información de referencia' },
+              { c: 'Medir tu avance', a: 'Índice de preparación, logros y racha', b: 'No disponible' },
+              { c: 'Formato', a: 'Móvil, 60 segundos, cuando quieras', b: 'Documentos extensos o charlas' }
+            ]; track r.c) {
+              <tr>
+                <td>{{ r.c }}</td>
+                <td class="us"><span class="yes"><app-icon name="check" /> {{ r.a }}</span></td>
+                <td><span class="meh"><app-icon name="info" /> {{ r.b }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== TESTIMONIOS ============================== -->
+  <section class="section" id="testimonios" style="background:var(--surface);border-block:1px solid var(--line)">
+    <div class="wrap testi">
+      <div reveal>
+        <span class="eyebrow">Experiencias ilustrativas</span>
+        @if (t(); as x) {
+          <blockquote class="quote" style="margin:24px 0 0" aria-live="polite">“{{ x.texto }}”</blockquote>
+          <div class="quote-by">
+            <span class="avatar" [style.background]="x.color">{{ x.iniciales }}</span>
+            <div><b>{{ x.nombre }}</b><br><small style="color:var(--ink-3)">{{ x.rol }} · Personaje ficticio</small></div>
+          </div>
+        }
+        <div class="testi-ctrl">
+          <button class="icon-btn" (click)="irTesti(ti() - 1)" aria-label="Anterior"><app-icon name="arrow-left" /></button>
+          <button class="icon-btn" (click)="irTesti(ti() + 1)" aria-label="Siguiente"><app-icon name="arrow-right" /></button>
+          <div class="testi-dots">
+            @for (x of testimonios; track x.nombre; let i = $index) {
+              <button [class.on]="ti() === i" (click)="irTesti(i)" [attr.aria-label]="'Testimonio ' + (i + 1)"></button>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="testi-cards" reveal>
+        @for (x of testimonios; track x.nombre; let i = $index) {
+          <button class="testi-mini" [class.on]="ti() === i" (click)="irTesti(i)">
+            <span class="avatar" [style.background]="x.color">{{ x.iniciales }}</span>
+            <div><b>{{ x.nombre }}</b><small>{{ x.rol }}</small></div>
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== RECURSOS ============================== -->
+  <section class="section" id="recursos">
+    <div class="wrap">
+      <div class="sec-head" reveal>
+        <span class="eyebrow">Recursos</span>
+        <h2>Consulta temas de preparación.</h2>
+      </div>
+      <div class="res-bar" role="group" aria-label="Filtrar por tema">
+        @for (x of tags; track x) {
+          <button class="chip" [class.on]="tag() === x" (click)="tag.set(x)">{{ x === 'Todos' ? 'Todos los temas' : '#' + x }}</button>
+        }
+      </div>
+      @if (recursos().length) {
+        <div class="res-grid">
+          @for (r of recursos(); track r.id; let i = $index) {
+            <article class="card res-card card-hover" [style.animation-delay.ms]="i * 60">
+              <div style="display:flex;justify-content:space-between;align-items:center"><span class="chip chip-safe">#{{ r.tag }}</span><small style="color:var(--ink-3)">{{ r.minutos }} min de lectura</small></div>
+              <h3>{{ r.titulo }}</h3>
+              <p>{{ r.texto }}</p>
+              <div class="foot">
+                <small style="color:var(--ink-3)">{{ r.fuente }}</small>
+                <button class="icon-btn" (click)="abrirCompartir(r.titulo + ' · SismoListo')" aria-label="Compartir recurso"><app-icon name="share" /></button>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="empty">No se encontraron resultados para este filtro.</div>
+      }
+
+      <div class="download" style="margin-top:72px" reveal>
+        <div>
+          <span class="eyebrow" style="color:var(--safe-2)">Lleva SismoListo contigo</span>
+          <h2 style="margin-top:14px">Tu preparación, siempre en el bolsillo.</h2>
+          <p>Pensada para móvil desde el primer píxel. La app nativa es una simulación académica; mientras tanto, usa la versión web desde cualquier celular.</p>
+          <div class="stores">
+            <button class="store" (click)="modal.set('descarga')"><app-icon name="google" /><span><small>DISPONIBLE EN</small><b>Google Play · demo</b></span></button>
+            <button class="store" (click)="modal.set('descarga')"><app-icon name="apple" /><span><small>DESCÁRGALA EN</small><b>App Store · demo</b></span></button>
+          </div>
+        </div>
+        <div class="qr">
+          <svg viewBox="0 0 25 25" shape-rendering="crispEdges">
+            @for (c of qr; track $index) { <rect [attr.x]="c.x" [attr.y]="c.y" width="1" height="1" fill="#0B1626"/> }
+          </svg>
+          <small>QR decorativo · demo</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== FAQ ============================== -->
+  <section class="section" id="faq" style="background:var(--surface);border-block:1px solid var(--line)">
+    <div class="wrap faq">
+      <div reveal>
+        <span class="eyebrow">Preguntas frecuentes</span>
+        <h2 style="font-size:clamp(34px,4.6vw,54px);margin:16px 0">Resolvemos tus dudas.</h2>
+        <p style="color:var(--ink-2)">¿No encuentras lo que buscas? <a class="link" routerLink="/" fragment="contacto">Escríbenos</a>.</p>
+      </div>
+      <div class="faq-list" reveal>
+        @for (f of faqs; track f.q; let i = $index) {
+          <div class="faq-item" [class.open]="faqOpen() === i">
+            <button (click)="faqOpen.set(faqOpen() === i ? null : i)" [attr.aria-expanded]="faqOpen() === i">{{ f.q }}<i>+</i></button>
+            <div class="faq-a"><div><p>{{ f.a }}</p></div></div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== CONTACTO ============================== -->
+  <section class="section" id="contacto">
+    <div class="wrap contact">
+      <div reveal>
+        <span class="eyebrow">Contacto</span>
+        <h2 style="font-size:clamp(34px,4.6vw,54px);margin:16px 0">¿Tienes una consulta sobre SismoListo?</h2>
+        <p style="color:var(--ink-2);font-size:18px">Escríbenos y el equipo del proyecto te responderá. El envío es una simulación académica.</p>
+        <div class="contact-info">
+          <a class="ci" href="mailto:equipo@sismolisto.example"><i><app-icon name="mail" /></i><div><b>Correo de ejemplo</b><small>equipo&#64;sismolisto.example</small></div></a>
+          <a class="ci" href="https://www.instagram.com" target="_blank" rel="noopener"><i><app-icon name="instagram" /></i><div><b>Instagram</b><small>Enlace genérico a la plataforma</small></div></a>
+          <a class="ci" href="https://www.linkedin.com" target="_blank" rel="noopener"><i><app-icon name="linkedin" /></i><div><b>LinkedIn</b><small>Enlace genérico a la plataforma</small></div></a>
+          <button class="ci" style="text-align:left;width:100%;cursor:pointer" (click)="abrirCompartir()"><i><app-icon name="share" /></i><div><b>Compartir SismoListo</b><small>Recomiéndalo a tu clase o equipo</small></div></button>
+        </div>
+      </div>
+      <div class="card form-card" reveal>
+        @if (enviado()) {
+          <div class="form-ok">
+            <div class="big"><app-icon name="check" [stroke]="2.5" /></div>
+            <h3 style="font-size:26px">¡Mensaje enviado, {{ form.nombre.split(' ')[0] }}!</h3>
+            <p style="color:var(--ink-2);margin:10px 0 24px">Simulamos el envío: en la versión real recibirías respuesta en {{ form.correo }}.</p>
+            <button class="btn btn-ghost" (click)="nuevoMensaje()">Enviar otro mensaje</button>
+          </div>
+        } @else {
+          <form (ngSubmit)="enviar()" novalidate style="display:grid;gap:16px">
+            <div class="field">
+              <label for="c-nombre">Nombre</label>
+              <input id="c-nombre" class="input" name="nombre" [(ngModel)]="form.nombre" [class.invalid]="intento() && !form.nombre.trim()" autocomplete="name" placeholder="Tu nombre">
+              @if (intento() && !form.nombre.trim()) { <span class="err">Ingresa tu nombre.</span> }
+            </div>
+            <div class="field">
+              <label for="c-correo">Correo</label>
+              <input id="c-correo" class="input" type="email" name="correo" [(ngModel)]="form.correo" [class.invalid]="intento() && !correoOk()" autocomplete="email" placeholder="tu@correo.com">
+              @if (intento() && !correoOk()) { <span class="err">Ingresa un correo válido.</span> }
+            </div>
+            <div class="field">
+              <label for="c-motivo">Motivo</label>
+              <select id="c-motivo" class="select input" name="motivo" [(ngModel)]="form.motivo">
+                <option>Consulta general</option><option>Quiero usarlo en mi institución</option><option>Reportar un problema</option><option>Sugerencia</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="c-msg">Consulta</label>
+              <textarea id="c-msg" class="textarea" name="mensaje" [(ngModel)]="form.mensaje" [class.invalid]="intento() && form.mensaje.trim().length < 10" maxlength="500" placeholder="Cuéntanos en qué podemos ayudarte"></textarea>
+              <div style="display:flex;justify-content:space-between">
+                @if (intento() && form.mensaje.trim().length < 10) { <span class="err">Escribe al menos 10 caracteres.</span> } @else { <span></span> }
+                <span class="hint">{{ form.mensaje.length }}/500</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-lg btn-block" type="submit" [disabled]="enviando()">{{ enviando() ? 'Enviando…' : 'Enviar consulta' }}</button>
+            <p class="hint" style="text-align:center">Al enviar aceptas la <button type="button" class="link" style="background:none;border:0;padding:0;font-size:13px" (click)="modal.set('privacidad')">política de privacidad (demo)</button>.</p>
+          </form>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================== CTA FINAL ============================== -->
+  <section class="wrap" reveal>
+    <div class="cta-final">
+      <div class="rings"><span></span><span style="animation-delay:-2s"></span><span style="animation-delay:-4s"></span></div>
+      <h2>El mejor momento para<br>prepararte es hoy.</h2>
+      <p>Crea tu cuenta de demostración en 30 segundos y haz tu primer micro-simulacro.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative">
+        <a class="btn btn-dark btn-lg" routerLink="/registro">Crear mi cuenta <app-icon name="arrow-right" /></a>
+        <button class="btn btn-light btn-lg" (click)="probar('estudiante')">Entrar como invitado</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<app-footer (privacidad)="modal.set('privacidad')" (compartir)="abrirCompartir()" />
+
+@if (arriba()) {
+  <button class="to-top" (click)="subir()" aria-label="Volver arriba"><app-icon name="arrow-up" /></button>
+}
+
+<!-- ============================== MODALES ============================== -->
+@if (modal(); as m) {
+  <div class="overlay" (click)="modal.set(null)">
+    <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      @switch (m) {
+        @case ('compartir') {
+          <div class="modal-icon" style="background:var(--safe-soft);color:var(--safe-ink)"><app-icon name="share" /></div>
+          <h3>Compartir SismoListo</h3>
+          <p>{{ compartirTexto() }}</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px">
+            @for (r of redes(); track r.n) {
+              <a [href]="r.h" target="_blank" rel="noopener" class="card" style="padding:16px;text-align:center;text-decoration:none;display:grid;justify-items:center;gap:8px" (click)="modal.set(null)">
+                <span style="width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff" [style.background]="r.c"><app-icon [name]="r.i" /></span>
+                <small style="font-weight:600">{{ r.n }}</small>
+              </a>
+            }
+          </div>
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <input class="input" [value]="url" readonly aria-label="Enlace">
+            <button class="btn btn-dark" (click)="copiar()"><app-icon name="copy" /> Copiar</button>
+          </div>
+          <div class="modal-actions"><button class="btn btn-ghost" (click)="modal.set(null)">Cancelar</button></div>
+        }
+        @case ('descarga') {
+          <div class="modal-icon" style="background:var(--info-soft);color:var(--info)"><app-icon name="smartphone" /></div>
+          <h3>Descargar SismoListo · demostración</h3>
+          <p>La app nativa todavía no está publicada en tiendas: es parte de una simulación académica. Puedes usar la versión web completa desde tu celular ahora mismo.</p>
+          <div class="modal-actions">
+            <button class="btn btn-ghost" (click)="modal.set(null)">Cerrar</button>
+            <button class="btn btn-primary" (click)="modal.set(null); probar('estudiante')">Usar versión web</button>
+          </div>
+        }
+        @case ('privacidad') {
+          <div class="modal-icon" style="background:var(--safe-soft);color:var(--safe-ink)"><app-icon name="lock" /></div>
+          <h3>Privacidad de esta demostración</h3>
+          <p>SismoListo guarda tus datos (cuenta de demostración, evaluaciones, riesgos, resultados y checklist) solo en el almacenamiento local de este navegador. No se envían a ningún servidor ni institución.</p>
+          <p style="margin-top:10px">Si borras los datos del navegador, tu progreso se pierde. No uses contraseñas reales.</p>
+          <div class="modal-actions"><button class="btn btn-primary" (click)="modal.set(null)">Entendido</button></div>
+        }
+      }
+    </div>
+  </div>
+}

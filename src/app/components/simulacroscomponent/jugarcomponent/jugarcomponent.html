@@ -1,0 +1,94 @@
+@if (sim(); as s) {
+  <div class="sim-stage">
+    <a class="link" routerLink="/app/simulacros" style="font-size:14px;margin-bottom:16px"><app-icon name="arrow-left" /> Todos los simulacros</a>
+
+    @switch (fase()) {
+      @case ('intro') {
+        <div class="scene" style="text-align:center;padding:56px 32px">
+          <span class="evt" style="background:rgba(25,195,125,.15);color:var(--safe-2)">MICRO-SIMULACRO · {{ s.espacio.toUpperCase() }}</span>
+          <h3 style="font-size:clamp(30px,4vw,44px)">{{ s.titulo }}</h3>
+          <p style="max-width:520px;margin:14px auto 0">{{ s.resumen }}</p>
+          <div style="display:flex;gap:24px;justify-content:center;margin:28px 0;flex-wrap:wrap;font-size:14px;color:rgba(255,255,255,.7)">
+            <span>⏱️ 60 s máx.</span><span>🧩 {{ s.escenas.length }} decisiones</span><span>📈 {{ s.dificultad }}</span>
+            @if (mejorPrevio() !== undefined) { <span>🏅 Tu mejor: {{ mejorPrevio() }}</span> }
+          </div>
+          <button class="btn btn-primary btn-lg" (click)="empezar()"><app-icon name="play" /> Comenzar</button>
+          <p style="font-size:13px;margin-top:18px;color:rgba(255,255,255,.45)">Atajos: teclas 1, 2, 3 para responder · Enter para continuar</p>
+        </div>
+      }
+      @case ('escena') {
+        @if (escena(); as e) {
+          <div class="sim-head">
+            <div class="timer" [class.warn]="restante() <= 10" [class.crit]="restante() <= 5" role="timer" [attr.aria-label]="restante() + ' segundos'">
+              <svg viewBox="0 0 76 76"><circle class="bg" cx="38" cy="38" r="32"/><circle class="fg" cx="38" cy="38" r="32" [attr.stroke-dasharray]="circ" [attr.stroke-dashoffset]="circ * (1 - restante() / e.segundos)"/></svg>
+              <b>{{ restante() }}</b>
+            </div>
+            <div style="flex:1">
+              <small class="hint" style="font-family:var(--f-mono)">ESCENA {{ idx() + 1 }} DE {{ s.escenas.length }}</small>
+              <div class="bar" style="margin-top:8px"><i [style.width.%]="(idx() + (elegida() || agotado() ? 1 : 0)) / s.escenas.length * 100"></i></div>
+            </div>
+          </div>
+          <div class="scene" [class.quake]="sacude()">
+            <span class="evt"><span class="dot"></span> {{ e.evento }}</span>
+            <h3>{{ e.titulo }}</h3>
+            <p>{{ e.texto }}</p>
+            <svg class="art" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M2 13h4l2-6 3 11 3-8 2 3h6"/></svg>
+          </div>
+          <div class="opts" role="group" aria-label="Opciones">
+            @for (o of orden(); track o.texto; let i = $index) {
+              <button class="opt" [class]="'opt ' + claseOpcion(o)" [disabled]="!!elegida() || agotado()" (click)="elegir(o)" [style.animation-delay.ms]="i * 70">
+                <span class="k">{{ letras[i] }}</span>{{ o.texto }}
+              </button>
+            }
+          </div>
+          @if (elegida(); as el) {
+            <div class="feedback" [class]="'feedback ' + el.calidad" role="status">
+              <i><app-icon [name]="el.calidad === 'good' ? 'check' : el.calidad === 'mid' ? 'info' : 'x'" /></i>
+              <div style="flex:1"><b>{{ el.calidad === 'good' ? '¡Buena decisión!' : el.calidad === 'mid' ? 'Decisión mejorable' : 'Decisión riesgosa' }}</b><p>{{ el.feedback }}</p></div>
+            </div>
+          } @else if (agotado()) {
+            <div class="feedback bad" role="status">
+              <i><app-icon name="clock" /></i>
+              <div><b>Se acabó el tiempo</b><p>En una emergencia, la duda también cuesta. La opción recomendada está resaltada en verde.</p></div>
+            </div>
+          }
+          @if (elegida() || agotado()) {
+            <div style="display:flex;justify-content:flex-end;margin-top:16px">
+              <button class="btn btn-dark btn-lg" (click)="siguiente()">{{ idx() < s.escenas.length - 1 ? 'Siguiente escena' : 'Ver resultado' }} <app-icon name="arrow-right" /></button>
+            </div>
+          }
+        }
+      }
+      @case ('fin') {
+        <div class="card result-hero">
+          <div class="ring">
+            <svg viewBox="0 0 160 160"><circle class="bg" cx="80" cy="80" r="70"/><circle class="fg" cx="80" cy="80" r="70" [attr.stroke-dasharray]="2 * 3.1416 * 70" [attr.stroke-dashoffset]="2 * 3.1416 * 70 * (1 - puntaje() / 100)" [style.stroke]="puntaje() < 50 ? 'var(--danger)' : puntaje() < 80 ? 'var(--alert)' : 'var(--safe)'"/></svg>
+            <div class="lbl"><div><b>{{ puntaje() }}</b><small>PUNTOS</small></div></div>
+          </div>
+          <h2 style="font-size:30px">{{ puntaje() === 100 ? '¡Decisiones perfectas! 🎯' : puntaje() >= 70 ? '¡Muy bien!' : puntaje() >= 40 ? 'Buen intento' : 'Sigue practicando' }}</h2>
+          <p style="color:var(--ink-2);margin-top:8px">Usaste {{ usados }} segundos en {{ s.escenas.length }} decisiones.</p>
+          <div class="recap" style="text-align:left;max-width:560px;margin:24px auto 0">
+            @for (e of s.escenas; track e.titulo; let i = $index) {
+              <div><span>{{ decisiones()[i] === 'good' ? '✅' : decisiones()[i] === 'mid' ? '🟠' : '❌' }}</span><div><b>{{ e.evento }}</b><br><span style="font-size:14px;color:var(--ink-2)">{{ e.titulo }}</span></div></div>
+            }
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:28px;flex-wrap:wrap">
+            <button class="btn btn-ghost" (click)="empezar()"><app-icon name="refresh" /> Repetir</button>
+            <a class="btn btn-primary" routerLink="/app/simulacros">Otro simulacro <app-icon name="arrow-right" /></a>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  @if (fase() === 'cuenta') {
+    <div class="count-in" aria-live="assertive">
+      <div>
+        @switch (cuenta()) { @case (3) { <b>3</b> } @case (2) { <b>2</b> } @default { <b>1</b> } }
+        <p>Prepárate… {{ s.titulo }}</p>
+      </div>
+    </div>
+  }
+} @else {
+  <div class="empty">Simulacro no encontrado. <a class="link" routerLink="/app/simulacros">Ver todos</a></div>
+}

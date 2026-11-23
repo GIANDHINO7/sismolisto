@@ -1,0 +1,55 @@
+<a class="skip" href="#app-main">Saltar al contenido</a>
+<div class="app">
+  @if (menu()) { <div class="side-scrim" (click)="menu.set(false)"></div> }
+  <aside class="side" [class.open]="menu()" aria-label="Navegación de la app">
+    <app-logo />
+    @for (g of nav; track g.grupo) {
+      <span class="side-label">{{ g.grupo }}</span>
+      @for (it of g.items; track it.r) {
+        <a class="item" [routerLink]="it.r" routerLinkActive="on" (click)="menu.set(false)">
+          <app-icon [name]="it.i" /> {{ it.t }}
+          @if (it.badge && datos.riesgosAbiertos().length) { <span class="badge">{{ datos.riesgosAbiertos().length }}</span> }
+        </a>
+      }
+    }
+    <span class="side-label">Cuenta</span>
+    <a class="item" routerLink="perfil" routerLinkActive="on" (click)="menu.set(false)"><app-icon name="user" /> Perfil</a>
+    <a class="item" routerLink="/"><app-icon name="home" /> Volver a la web</a>
+
+    <div class="side-foot">
+      <div class="card" style="padding:14px;background:var(--bg-2);border:0">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px"><b>Preparación</b><span style="font-family:var(--f-mono)">{{ datos.preparacion() }}%</span></div>
+        <div class="bar"><i [style.width.%]="datos.preparacion()"></i></div>
+      </div>
+      <div class="me">
+        <span class="avatar" style="background:var(--safe)">{{ auth.iniciales() }}</span>
+        <div style="min-width:0"><b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ auth.usuario()?.nombre }}</b><small>{{ auth.usuario()?.tipo === 'oficina' ? 'Trabajador de oficina' : 'Estudiante' }}</small></div>
+        <button class="icon-btn" (click)="salir()" aria-label="Cerrar sesión" title="Cerrar sesión"><app-icon name="logout" /></button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn m-burger" (click)="menu.set(true)" aria-label="Abrir menú"><app-icon name="menu" /></button>
+      <h1>{{ titulo() }}</h1>
+      <span class="sp"></span>
+      @if (datos.racha()) { <span class="chip chip-alert" title="Días seguidos con actividad"><app-icon name="flame" /> {{ datos.racha() }}</span> }
+      <span class="rol-badge" [title]="'Portal ' + (auth.usuario()?.tipo === 'oficina' ? 'Oficina' : 'Estudiante')">{{ auth.usuario()?.tipo === 'oficina' ? '💼 Oficina' : '🎓 Estudiante' }}</span>
+      <button class="btn btn-alarm btn-sm top-alarm" (click)="sismo.alerta.set(true)" title="Simulacro de alerta sísmica"><span class="siren"></span><span class="ta-txt">Alerta</span></button>
+      <button class="icon-btn" (click)="sismo.alternarSonido()" [attr.aria-label]="sismo.sonido() ? 'Silenciar efectos' : 'Activar sonido'" [title]="sismo.sonido() ? 'Sonido activado' : 'Sonido apagado'"><app-icon [name]="sismo.sonido() ? 'zap' : 'x'" /></button>
+      <button class="icon-btn" (click)="tema.alternar()" [attr.aria-label]="tema.oscuro() ? 'Activar modo claro' : 'Activar modo oscuro'"><app-icon [name]="tema.oscuro() ? 'sun' : 'moon'" /></button>
+    </header>
+    <div class="content" id="app-main">
+      <router-outlet />
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Navegación rápida">
+  <a routerLink="inicio" routerLinkActive="on"><app-icon name="home" />Inicio</a>
+  <a routerLink="evaluar" routerLinkActive="on"><app-icon name="clipboard" />Evaluar</a>
+  <a routerLink="mapa" routerLinkActive="on"><app-icon name="map" />Zonas</a>
+  <a routerLink="simulacros" routerLinkActive="on"><app-icon name="timer" />Simular</a>
+  <a routerLink="progreso" routerLinkActive="on"><app-icon name="chart" />Progreso</a>
+</nav>

@@ -1,0 +1,86 @@
+<div class="disclaimer"><app-icon name="alert" /><span>Planos y rutas <strong>ficticios y didácticos</strong>. Durante un sismo real sigue la señalización y el plan oficial de tu edificio.</span></div>
+
+<div class="page-head">
+  <div><h2>Zonas y rutas</h2><p>Toca cada elemento del plano para ver su detalle. Simula un bloqueo para descubrir la ruta alterna.</p></div>
+  <div class="seg">
+    @for (p of planos; track p.id) { <button [class.on]="planoId() === p.id" (click)="cambiarPlano(p.id)">{{ p.id === 'aula' ? '🏫' : '💼' }} {{ p.nombre }}</button> }
+  </div>
+</div>
+
+<div class="map-wrap">
+  <div class="card map-card">
+    <div class="map-tools">
+      <button class="btn btn-sm" [class.btn-dark]="verRuta()" [class.btn-ghost]="!verRuta()" (click)="verRuta.set(!verRuta())"><app-icon name="activity" /> {{ verRuta() ? 'Ocultar ruta' : 'Mostrar ruta' }}</button>
+      <button class="btn btn-sm" [class.btn-danger]="bloqueada()" [class.btn-ghost]="!bloqueada()" (click)="bloqueada.set(!bloqueada()); verRuta.set(true)"><app-icon name="x" /> {{ bloqueada() ? 'Quitar bloqueo' : 'Bloquear salida principal' }}</button>
+      <span style="flex:1"></span>
+      @if (verRuta()) { <span class="chip" [class.chip-alert]="bloqueada()" [class.chip-safe]="!bloqueada()"><app-icon name="door" /> {{ distancia() }} m · {{ bloqueada() ? 'ruta alterna' : 'ruta principal' }}</span> }
+    </div>
+    <svg class="map-svg" [attr.viewBox]="'0 0 ' + plano().ancho + ' 460'" role="img" [attr.aria-label]="'Plano didáctico de ' + plano().nombre">
+      <defs>
+        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="var(--line)" stroke-width=".6"/></pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)"/>
+      <rect class="room" x="40" y="40" [attr.width]="plano().ancho - 80" height="380" rx="8"/>
+      <!-- muros con vanos de puertas -->
+      <path class="wall" d="M40 420 V 40 H 680 V 420" />
+      <path class="wall" d="M85 420 H 635" />
+      @if (planoId() === 'aula') {
+        <rect x="260" y="50" width="200" height="10" rx="3" fill="var(--ink-3)" opacity=".5"/><text x="360" y="80" text-anchor="middle">Pizarra</text>
+      }
+      <!-- columnas -->
+      @for (c of [[90, 90], [630, 230], [90, 250]]; track $index) { <rect [attr.x]="c[0]" [attr.y]="c[1]" width="22" height="22" fill="var(--ink-2)" rx="2"/> }
+      @for (m of plano().mesas; track $index) { <rect class="desk" [attr.x]="m.x" [attr.y]="m.y" [attr.width]="m.w" [attr.height]="m.h" rx="5"/> }
+
+      @if (verRuta()) {
+        <path class="route" [class.alt]="bloqueada()" [attr.d]="bloqueada() ? plano().alterna : plano().ruta"/>
+      }
+      @if (bloqueada()) {
+        <g [attr.transform]="'translate(' + plano().bloqueo.x + ',' + plano().bloqueo.y + ')'">
+          <circle r="18" fill="var(--danger)"/><path d="M-7 -7 7 7M7 -7-7 7" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+      }
+
+      @for (p of puntos(); track p.id) {
+        <g class="hot" [class.sel]="sel()?.id === p.id" (click)="sel.set(p)" (keydown.enter)="sel.set(p)" tabindex="0" role="button" [attr.aria-label]="p.t">
+          @if (p.tipo === 'tu') {
+            <circle [attr.cx]="p.x" [attr.cy]="p.y" r="14" fill="var(--info)" opacity=".3" class="pulse"/>
+            <circle [attr.cx]="p.x" [attr.cy]="p.y" r="9" fill="var(--info)" stroke="#fff" stroke-width="3"/>
+          } @else {
+            <rect [attr.x]="p.x - 16" [attr.y]="p.y - 16" width="32" height="32" [attr.rx]="p.tipo === 'obstaculo' ? 16 : 7" [attr.fill]="colores[p.tipo]" stroke="#fff" stroke-width="2.5"/>
+            <text [attr.x]="p.x" [attr.y]="p.y + 4.5" text-anchor="middle" style="fill:#fff;font-weight:800;font-size:12px">{{ letra(p.tipo) }}</text>
+          }
+        </g>
+      }
+    </svg>
+  </div>
+
+  <div style="display:grid;gap:16px;align-content:start">
+    @if (sel(); as s) {
+      <div class="card detail">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <span class="chip" [style.background]="colores[s.tipo] + '22'" [style.color]="colores[s.tipo]">{{ s.tipo === 'tu' ? 'Tú' : s.tipo }}</span>
+          <button class="icon-btn" style="width:32px;height:32px" (click)="sel.set(null)" aria-label="Cerrar detalle"><app-icon name="x" /></button>
+        </div>
+        <h3 style="font-size:20px;margin:12px 0 6px">{{ s.t }}</h3>
+        <p style="color:var(--ink-2);font-size:15px">{{ s.d }}</p>
+      </div>
+    } @else {
+      <div class="card" style="text-align:center;color:var(--ink-3)">
+        <app-icon name="pin" /><p style="margin-top:8px;font-size:14px">Selecciona un elemento del plano para ver el detalle.</p>
+      </div>
+    }
+    <div class="card">
+      <h3 class="ct">Capas</h3>
+      <div class="legend">
+        @for (l of leyenda; track l.tipo) {
+          <label class="check" style="align-items:center"><input type="checkbox" [checked]="capas()[l.tipo]" (change)="alternarCapa(l.tipo)"><i [style.background]="colores[l.tipo]" [style.border-radius]="l.tipo === 'obstaculo' ? '50%' : '4px'"></i> {{ l.t }}</label>
+        }
+        <div><i style="background:var(--info);border-radius:50%"></i> Tu ubicación</div>
+      </div>
+    </div>
+    <div class="card dark">
+      <span class="eyebrow" style="color:var(--safe-2)">Recuerda</span>
+      <p style="margin-top:10px;font-size:14px">Mientras tiembla, protégete en la zona segura interna. Evacúa solo cuando termine el movimiento fuerte, sin correr y sin usar ascensores.</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,99 @@
+@if (resultado(); as r) {
+  <!-- ============ RESULTADO ============ -->
+  <div class="card result-hero" style="max-width:760px;margin:0 auto">
+    <div class="ring">
+      <svg viewBox="0 0 160 160"><circle class="bg" cx="80" cy="80" r="70"/><circle class="fg" cx="80" cy="80" r="70" [attr.stroke-dasharray]="circ" [attr.stroke-dashoffset]="circ * (1 - r.puntaje / 100)" [style.stroke]="r.puntaje < 50 ? 'var(--danger)' : r.puntaje < 75 ? 'var(--alert)' : 'var(--safe)'"/></svg>
+      <div class="lbl"><div><b>{{ r.puntaje }}%</b><small>SEGURIDAD</small></div></div>
+    </div>
+    <h2 style="font-size:30px">{{ r.puntaje >= 75 ? '¡Tu espacio está bien preparado!' : r.puntaje >= 50 ? 'Vas por buen camino' : 'Tu espacio necesita atención' }}</h2>
+    <p style="color:var(--ink-2);margin-top:8px">
+      @if (nuevosRiesgos().length) { Registramos {{ nuevosRiesgos().length }} riesgo(s) en tu lista para que les des seguimiento. }
+      @else { No detectamos riesgos nuevos. ¡Excelente! }
+    </p>
+    @if (nuevosRiesgos().length) {
+      <div class="risk-list" style="text-align:left;margin-top:24px">
+        @for (p of nuevosRiesgos(); track p.id) {
+          <div class="risk">
+            <span class="sev" [style.background]="p.severidad === 'alta' ? 'var(--danger-soft)' : 'var(--alert-soft)'" [style.color]="p.severidad === 'alta' ? 'var(--danger)' : 'var(--alert-ink)'"><app-icon name="alert" /></span>
+            <div><b>{{ p.riesgo }}</b><small>{{ p.porque }}</small></div>
+            <span class="chip" [class.chip-danger]="p.severidad === 'alta'" [class.chip-alert]="p.severidad === 'media'" [class.chip-info]="p.severidad === 'baja'">{{ p.severidad }}</span>
+          </div>
+        }
+      </div>
+    }
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:28px;flex-wrap:wrap">
+      <button class="btn btn-ghost" (click)="nueva()"><app-icon name="refresh" /> Evaluar otro espacio</button>
+      @if (nuevosRiesgos().length) { <button class="btn btn-primary" (click)="verRiesgos()">Ver mis riesgos <app-icon name="arrow-right" /></button> }
+      @else { <a class="btn btn-primary" routerLink="/app/simulacros">Practicar un simulacro <app-icon name="arrow-right" /></a> }
+    </div>
+  </div>
+} @else if (paso() === 0) {
+  <!-- ============ ELEGIR ESPACIO ============ -->
+  <div class="page-head">
+    <div><span class="eyebrow">Paso 1 de 2</span><h2 style="margin-top:8px">¿Qué espacio quieres evaluar?</h2><p>Elige el ambiente donde estás ahora o donde pasas más tiempo.</p></div>
+  </div>
+  <div class="space-pick" role="radiogroup">
+    @for (e of espacios(); track e.id) {
+      <button class="space-opt" role="radio" [attr.aria-checked]="espacio() === e.id" [class.on]="espacio() === e.id" (click)="elegir(e.id)" (dblclick)="elegir(e.id); empezar()">
+        <span class="emo">{{ e.emoji }}</span><b>{{ e.nombre }}</b><small>{{ e.descripcion }}</small>
+      </button>
+    }
+  </div>
+  <div class="wiz-nav">
+    <span class="hint" style="align-self:center">Toma unos 3 minutos. Se guarda automáticamente.</span>
+    <button class="btn btn-primary btn-lg" [disabled]="!espacio()" (click)="empezar()">Comenzar evaluación <app-icon name="arrow-right" /></button>
+  </div>
+} @else {
+  <!-- ============ PREGUNTAS ============ -->
+  <div style="max-width:760px;margin:0 auto">
+    <div class="wiz-steps" aria-hidden="true">
+      @for (p of preguntas(); track p.id; let i = $index) { <span [class.on]="i < paso() || respuestas()[p.id]"></span> }
+    </div>
+    @if (pregunta(); as q) {
+      <div class="card q-card" style="animation:pop .35s var(--ease)">
+        <span class="q-num">PREGUNTA {{ paso() }} DE {{ total() }} · {{ nombreEspacio(espacio()!).toUpperCase() }}</span>
+        <h3>{{ q.texto }}</h3>
+        <p class="why"><app-icon name="info" /> {{ q.porque }}</p>
+        <div class="answers" role="radiogroup">
+          <button class="si" [class.on]="respuestas()[q.id] === 'si'" (click)="responder('si')"><span>👍</span>Sí <small class="hint">tecla 1</small></button>
+          <button class="no" [class.on]="respuestas()[q.id] === 'no'" (click)="responder('no')"><span>👎</span>No <small class="hint">tecla 2</small></button>
+          <button class="ns" [class.on]="respuestas()[q.id] === 'ns'" (click)="responder('ns')"><span>🤔</span>No estoy seguro <small class="hint">tecla 3</small></button>
+        </div>
+      </div>
+    }
+    <div class="wiz-nav">
+      <button class="btn btn-ghost" (click)="anterior()"><app-icon name="arrow-left" /> Anterior</button>
+      @if (paso() < total()) {
+        <button class="btn btn-dark" (click)="siguiente()">Siguiente <app-icon name="arrow-right" /></button>
+      } @else {
+        <button class="btn btn-primary" (click)="finalizar()">Finalizar evaluación <app-icon name="check" /></button>
+      }
+    </div>
+  </div>
+}
+
+@if (dialogo(); as d) {
+  <div class="overlay">
+    <div class="modal" role="dialog" aria-modal="true">
+      @if (d === 'salir') {
+        <div class="modal-icon" style="background:var(--alert-soft);color:var(--alert-ink)"><app-icon name="save" /></div>
+        <h3>¿Deseas guardar antes de salir?</h3>
+        <p>Tu evaluación de {{ nombreEspacio(espacio()!) }} está a medias. Puedes guardarla como borrador y continuar después.</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" (click)="decidirSalida('descartar')">Salir sin guardar</button>
+          <button class="btn btn-ghost" (click)="decidirSalida('seguir')">Continuar evaluación</button>
+          <button class="btn btn-primary" (click)="decidirSalida('guardar')">Guardar y salir</button>
+        </div>
+      } @else {
+        <div class="modal-icon" style="background:var(--info-soft);color:var(--info)"><app-icon name="clipboard" /></div>
+        <h3>Quedan pasos pendientes</h3>
+        <p>Hay preguntas sin responder. Si finalizas ahora, se marcarán como "No estoy seguro".</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" (click)="dialogo.set(null)">Cancelar</button>
+          <button class="btn btn-ghost" (click)="finalizar(true)">Finalizar de todos modos</button>
+          <button class="btn btn-primary" (click)="completarPendientes()">Completar pasos</button>
+        </div>
+      }
+    </div>
+  </div>
+}
